@@ -72,7 +72,7 @@ namespace Local
                 if (value != _displayValue)
                 {
                     _displayValue = value;
-                    OnPropertyChanged("DisplayValue");
+                    OnPropertyChanged(nameof(DisplayValue));
                 }
             }
         }
