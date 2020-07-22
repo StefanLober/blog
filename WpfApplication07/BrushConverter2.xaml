@@ -1,0 +1,5 @@
+﻿<local:GenericConverter x:Class="Local.BrushConverter2" x:TypeArguments="local:DisplayValueEnum, Brush"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Local">
+</local:GenericConverter>
