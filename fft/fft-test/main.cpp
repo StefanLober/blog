@@ -7,116 +7,57 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include <time.h>
-#include <tchar.h>
-#include <strsafe.h>
-#include <windows.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
-#define MAX_THREADS 8
-const int DATA_COUNT = MAX_THREADS * 512;
+const auto processor_count = thread::hardware_concurrency();
+const int DATA_COUNT = processor_count * 0x4000;
 
-void ErrorHandler(LPTSTR lpszFunction);
-
-const int LENGTH = 0x20000;
+const int LENGTH = 0x10000;
 const int CUT_OFF = 0x80;
 
-// Sample custom data structure for threads to use.
-// This is passed by void pointer so it can be any data type
-// that can be passed using a single void pointer (LPVOID).
 struct ThreadData {
     double* input;
     double* output;
 };
 
-DWORD WINAPI fftThreadFunction(LPVOID lpParam)
+void fft(const ThreadData* threadData)
 {
-    ThreadData* threadData = (ThreadData*)lpParam;
-
-    for (int i = 0; i < DATA_COUNT / MAX_THREADS; i++)
+    for (unsigned int i = 0; i < DATA_COUNT / processor_count; i++)
     {
         ooura_fft(threadData->input, threadData->output, LENGTH);
     }
-
-    return 0;
-}
-
-void ErrorHandler(LPTSTR lpszFunction)
-{
-    // Retrieve the system error message for the last-error code.
-
-    LPVOID lpMsgBuf;
-    LPVOID lpDisplayBuf;
-    DWORD dw = GetLastError();
-
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        dw,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR)&lpMsgBuf,
-        0, NULL);
-
-    // Display the error message.
-
-    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
-    StringCchPrintf((LPTSTR)lpDisplayBuf, LocalSize(lpDisplayBuf) / sizeof(TCHAR), TEXT("%s failed with error %d: %s"), lpszFunction, dw, lpMsgBuf);
-    MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
-
-    // Free error-handling buffer allocations.
-
-    LocalFree(lpMsgBuf);
-    LocalFree(lpDisplayBuf);
 }
 
 int main()
 {
-    clock_t start = clock();
+    thread* threads = new thread[processor_count];
+    ThreadData* threadData = new ThreadData[processor_count];
+    
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 
-    DWORD   dwThreadIdArray[MAX_THREADS];
-    HANDLE  hThreadArray[MAX_THREADS];
-    ThreadData threadData[MAX_THREADS];
-
-    // Create MAX_THREADS worker threads.
-    for (int i = 0; i < MAX_THREADS; i++)
+    for(unsigned int i=0; i<processor_count; i++)
     {
         threadData[i].input = new double[LENGTH];
         threadData[i].output = new double[LENGTH + 1];
 
         for (int x = 0; x < LENGTH; x++)
         {
-            threadData[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + cos(x * (double)2 * M_PI / (double)LENGTH);
+            threadData[i].input[x] = (x < LENGTH / 2 ? 1 : 0) + sin(x * (double)2 * M_PI / (double)LENGTH);
         }
 
-        // Create the thread to begin execution on its own.
-        hThreadArray[i] = CreateThread(
-            NULL,                   // default security attributes
-            0,                      // use default stack size  
-            fftThreadFunction,       // thread function name
-            &threadData[i],          // argument to thread function 
-            0,                      // use default creation flags 
-            &dwThreadIdArray[i]);   // returns the thread identifier 
+        threads[i] = thread(fft, threadData);
+    }
 
+    for (unsigned int i = 0; i < processor_count; i++)
+    {
+        threads[i].join();
+    }
 
-          // Check the return value for success.
-          // If CreateThread fails, terminate execution. 
-          // This will automatically clean up threads and memory. 
-
-        if (hThreadArray[i] == NULL)
-        {
-            ErrorHandler(TEXT("CreateThread"));
-            ExitProcess(3);
-        }
-    } // End of main thread creation loop.
-
-    // Wait until all threads have terminated.
-    WaitForMultipleObjects(MAX_THREADS, hThreadArray, TRUE, INFINITE);
-
-    clock_t end = clock();
-    cout << "time for " << DATA_COUNT << " data sets of length " << LENGTH << ": " << end - start << endl;
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    cout << "time for " << DATA_COUNT << " data sets of length " << LENGTH << ": " << chrono::duration_cast<chrono::milliseconds>(end - begin).count() << endl;
 
     ofstream resultFile("result.csv");
     for (int x = 0; x < LENGTH; x++)
@@ -131,14 +72,9 @@ int main()
     resultFile.flush();
     resultFile.close();
 
-    // Close all thread handles and free memory allocations.
-    for (int i = 0; i < MAX_THREADS; i++)
+    for (unsigned int i = 0; i < processor_count; i++)
     {
         delete[]threadData[i].input;
         delete[]threadData[i].output;
-
-        CloseHandle(hThreadArray[i]);
     }
-
-    return 0;
 }

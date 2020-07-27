@@ -3,12 +3,11 @@ CXX := g++
 MAJOR := 0
 MINOR := 1
 NAME := ooura
-VERSION := $(MAJOR).$(MINOR)
 
-lib: lib$(NAME).so.$(VERSION)
+lib: lib$(NAME).so
 
-lib$(NAME).so.$(VERSION): $(NAME).o
-	$(CXX) -shared $^ -o $@
+lib$(NAME).so: $(NAME).o
+	$(CXX) $(CXXFLAGS) -shared $^ -o $@
 
 clean:
 	$(RM) *.o *.so*

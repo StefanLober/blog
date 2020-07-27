@@ -341,3 +341,4 @@ healthchecksdb
 *.csv
 *.1
 *.o
+*.so
