@@ -281,7 +281,6 @@ Appendix :
     w[] and ip[] are compatible with all routines.
 */
 
-
 void cdft(int n, int isgn, double *a, int *ip, double *w)
 {
     void makewt(int nw, int *ip, double *w);
@@ -304,6 +303,7 @@ void cdft(int n, int isgn, double *a, int *ip, double *w)
 
 void rdft(int n, int isgn, double *a, int *ip, double *w)
 {
+
     void makewt(int nw, int *ip, double *w);
     void makect(int nc, int *ip, double *c);
     void cftfsub(int n, double *a, int *ip, int nw, double *w);
@@ -323,6 +323,7 @@ void rdft(int n, int isgn, double *a, int *ip, double *w)
         nc = n >> 2;
         makect(nc, ip, w + nw);
     }
+
     if (isgn >= 0) {
         if (n > 4) {
             cftfsub(n, a, ip, nw, w);
@@ -330,6 +331,7 @@ void rdft(int n, int isgn, double *a, int *ip, double *w)
         } else if (n == 4) {
             cftfsub(n, a, ip, nw, w);
         }
+
         xi = a[0] - a[1];
         a[0] += a[1];
         a[1] = xi;
@@ -813,7 +815,7 @@ void cftfsub(int n, double *a, int *ip, int nw, double *w)
 #ifdef USE_CDFT_THREADS
     void cftrec4_th(int n, double *a, int nw, double *w);
 #endif /* USE_CDFT_THREADS */
-    
+
     if (n > 8) {
         if (n > 32) {
             cftf1st(n, a, &w[nw - (n >> 2)]);
@@ -829,6 +831,7 @@ void cftfsub(int n, double *a, int *ip, int nw, double *w)
             } else {
                 cftfx41(n, a, nw, w);
             }
+
             bitrv2(n, ip, a);
         } else if (n == 32) {
             cftf161(a, &w[nw - 8]);
@@ -2311,7 +2314,9 @@ void cftrec4(int n, double *a, int nw, double *w)
         m >>= 2;
         cftmdl1(m, &a[n - m], &w[nw - (m >> 1)]);
     }
+
     cftleaf(m, 1, &a[n - m], nw, w);
+
     k = 0;
     for (j = n - m; j > 0; j -= m) {
         k++;
