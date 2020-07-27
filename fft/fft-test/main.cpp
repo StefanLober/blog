@@ -14,12 +14,12 @@
 
 using namespace std;
 
-#define MAX_THREADS 1
-const int DATA_COUNT = MAX_THREADS * 1;
+#define MAX_THREADS 8
+const int DATA_COUNT = MAX_THREADS * 512;
 
 void ErrorHandler(LPTSTR lpszFunction);
 
-const int LENGTH = 0x1000;
+const int LENGTH = 0x20000;
 const int CUT_OFF = 0x80;
 
 // Sample custom data structure for threads to use.

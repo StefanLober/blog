@@ -1,6 +1,6 @@
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include <map>
+#include <algorithm>
 #include <string>
 
 #include "../fft_JniFft.h"
@@ -32,7 +32,6 @@ JNIEXPORT void ooura_fft(double* input, double* output, int length)
 	int lengthW = (int)(5 * length / 4);
 	double* w = new double[lengthW];
 
-	memcpy_s(output, length * sizeof(double), input, length * sizeof(double));
 	copy_n(input, length, output);
 	rdft(length, 1, output, ip, w);
 
