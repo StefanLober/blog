@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
 
 namespace Local
 {
@@ -48,6 +47,4 @@ namespace Local
             return GetValues(this).FirstOrDefault(x => x.Value.Equals(castedValue)).Key;
         }
     }
-
-    public class BrushConverter : GenericConverter<DisplayValueEnum, Brush> { }
 }
