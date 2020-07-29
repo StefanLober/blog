@@ -10,10 +10,7 @@ namespace Local
 
         public ActionCommand(Action execute)
         {
-            if (execute == null)
-                throw new ArgumentNullException("execute");
-
-            _execute = execute;
+            _execute = execute ?? throw new ArgumentNullException("execute");
         }
 
         public void Execute(object param) { _execute(); }
@@ -33,29 +30,23 @@ namespace Local
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
+            if (PropertyChanged != null)
             {
                 var e = new PropertyChangedEventArgs(propertyName);
-                this.PropertyChanged(this, e);
+                PropertyChanged(this, e);
             }
         }
         
         private ICommand _changeCommand;
 
-        public ICommand ChangeCommand
-        {
-            get
-            {
-                if (_changeCommand == null)
-                {
-                    _changeCommand = new ActionCommand(Change);
-                }
-
-                return _changeCommand;
-            }
-        }
+        public ICommand ChangeCommand => _changeCommand;
 
         private DisplayValueEnum _displayValue = DisplayValueEnum.Undecided;
+
+        public ViewModel()
+        {
+            _changeCommand = new ActionCommand(Change);
+        }
 
         public DisplayValueEnum DisplayValue
         {
